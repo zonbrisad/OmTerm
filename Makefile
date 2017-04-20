@@ -27,32 +27,22 @@ SRC = src/main.cpp       \
 			src/console.cpp    \
 			src/aboutForm.cpp  \
 
-# List of .h/.cpp files to generate moc data from
-MOCS = src/mainForm.h \ 
+# List of .h/.cpp files to generate moc data from (Qt)
+MOCS = src/mainForm.h \
        src/console.h  \
 			 src/aboutForm.h
 
-MOCSRC = $(patsubst %.h,%_moc.cpp,$(MOCS))           # Generate moc source files
-SRC += $(MOCSRC)
 
-# List Qt .ui(user interface) files
-UIS = aboutForm.ui \
-      mainForm.ui
+# List of Qt .ui(user interface) files
+UI  = src/aboutForm.ui \
+      src/mainForm.ui
 
-UIH = $(patsubst ui/%.ui, ui/%_ui.h, $(UIS) )
-
-ui:
-	echo $(UIH)
-
-%.ui: 
-	$(UI) $<
 
 # List C, C++ and assembler library/3rd partry source files here. (C/C++ dependencies are automatically generated.)
 LSRC =	
 
 # Include directories
-INCLUDE = inc \
-          src \
+INCLUDE = src 
 
 # Libraries to link
 LIB   = -lm 
@@ -234,6 +224,13 @@ TCHAIN_PREFIX=
 
 endif
 
+
+# Qt stuff -----------------------------------------------------------------
+MOCSRC = $(patsubst %.h,%_moc.cpp,$(MOCS))      # Generate moc source files
+SRC += $(MOCSRC)
+#UIH = $(patsubst ui/%.ui, ui/%_ui.h, $(UI) )   # Generate UI header files
+UIH = $(patsubst src/%.ui, src/ui_%.h, $(UI) )          # Generate UI header files
+
 #
 # Tool settings
 #============================================================================
@@ -344,7 +341,8 @@ MSG_FLASH            = "${C_ACTION}Creating load file for Flash:${E_END}"
 MSG_EEPROM           = "${C_ACTION}Creating load file for EEPROM:${E_END}"
 MSG_COFF             = "${C_ACTION}Converting to AVR COFF:${E_END}"
 MSG_EXTENDED_COFF    = "${C_ACTION}Converting to AVR Extended COFF:${E_END}"
-MSG_MOC              = "${C_ACTION}Creating MOC file:${E_END}"	
+MSG_MOC              = "${C_ACTION}Creating MOC file:${E_END}"
+MSG_UI               = "${C_ACTION}Generating UI header:${E_END}"
 MSG_BACKUP           = "${E_BR_GREEN}Making incremental backup of project:${E_END}"
 MSG_SRC              = "${C_MSG}Source files $(E_GREEN)-----------------------------------------------------${E_END}"
 MSG_FLAGS            = "${C_MSG}Compiler Flags $(E_GREEN)---------------------------------------------------${E_END}"
@@ -455,7 +453,7 @@ finished:
 # Link target
 #.SECONDARY : $(TARGET)
 .PRECIOUS : $(OBJS)
-$(TRGFILE): $(OBJS) $(OUTDIR)
+$(TRGFILE): $(UIH) $(OBJS) $(OUTDIR)
 	@echo -en "\n"$(MSG_LINKING)"\n               "
 	@echo -e $@ $(F_SOURCE) 
 	@$(CPP) $(ALL_CFLAGS) $(OBJS) --output $@ $(LDFLAGS) $(LIB) 2>&1 $(LD_FILTER)
@@ -501,12 +499,19 @@ $(OBJDIR)/%.s : %.c
 $(OBJDIR)/%.s : %.cpp
 	@$(CC) -S $(ALL_CPPFLAGS) $< -o $@
 
-# Generate cc from h via Qt's Meta Object Compiler, rule to change postfix
-#%_moc.cc: %.h
+
+# Qt Meta Object Compiler target
 $(MOCSRC): %_moc.cpp : %.h 	
 	@echo -en $(MSG_MOC) "\n               "
 	@echo -e $@ $(F_SOURCE)
 	@$(MOC) $(INCDIRS) $< -o $@
+
+# Qt user interface header file generation target
+$(UIH): src/ui_%.h: src/%.ui
+	@echo -en $(MSG_UI) "\n               "
+	@echo -e $@  $(F_SOURCE)  
+	@$(UIC) $(INCDIRS) $< -o $@
+
 
 # Create output dir
 $(OUTDIR):
@@ -550,6 +555,7 @@ clean:  ## Remove all build files
 	@$(REMOVE) $(OBJS)
 	@$(REMOVE) $(LST)
 	@$(REMOVE) $(MOCSRC)
+	@$(REMOVE) $(UIH)
 	@$(REMOVEDIR) .dep
 	@$(REMOVEDIR) $(BUILDDIR)	
 	@find . -name "*~" -delete
