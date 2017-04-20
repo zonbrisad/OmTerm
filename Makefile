@@ -27,11 +27,25 @@ SRC = src/main.cpp       \
 			src/console.cpp    \
 			src/aboutForm.cpp  \
 
-MOCS = src/mainForm.h src/console.h src/aboutForm.h
+# List of .h/.cpp files to generate moc data from
+MOCS = src/mainForm.h \ 
+       src/console.h  \
+			 src/aboutForm.h
 
 MOCSRC = $(patsubst %.h,%_moc.cpp,$(MOCS))           # Generate moc source files
 SRC += $(MOCSRC)
 
+# List Qt .ui(user interface) files
+UIS = aboutForm.ui \
+      mainForm.ui
+
+UIH = $(patsubst ui/%.ui, ui/%_ui.h, $(UIS) )
+
+ui:
+	echo $(UIH)
+
+%.ui: 
+	$(UI) $<
 
 # List C, C++ and assembler library/3rd partry source files here. (C/C++ dependencies are automatically generated.)
 LSRC =	
@@ -49,6 +63,7 @@ PKGLIBS  = Qt5Core
 PKGLIBS += Qt5Gui 
 PKGLIBS += Qt5Widgets
 PKGLIBS += Qt5SerialPort
+#PKGLIBS += Qt5Network
 #PKGLIBS += glib-2.0
 #PKGLIBS += gthread-2.0
 #PKGLIBS += ncurses
@@ -225,22 +240,23 @@ endif
 
 # Define programs and commands ----------------------------------------------
 SHELL     = bash
+WINSHELL  = cmd
 REMOVE    = rm -f
 REMOVEDIR = rm -rf
 COPY      = cp -f 
 MOVE      = mv -f
-WINSHELL  = cmd
 MKDIR     = mkdir -p
-SED       = sed
-MOC       = moc
-QMAKE     = qmake
-CTEMPLATE = python3 tools/ctemplate.py
-BIN2ARRAY = python3 tools/bin2array.py
-MPTOOL    = tools/mkptools
+SED       = sed              # stream editor program
+MOC       = moc              # Qt meta object compiler
+QMAKE     = qmake            # Qt make program
+UIC       = uic              # Qt resource file compiler
+CTEMPLATE = python3 tools/ctemplate.py # C/C++ template tool
+BIN2ARRAY = python3 tools/bin2array.py # Binary to array tool
+MPTOOL    = tools/mkptools   # Makeplate tools
 CPPCHECK  = cppcheck
 INSTALL   = install
-ASTYLE    = astyle
-DOXYGEN   = doxygen
+ASTYLE    = astyle           # Code beatyfier
+DOXYGEN   = doxygen          # Code documetation program
 
 TCHAIN = $(TCHAIN_BASE)/$(TCHAIN_PREFIX)
 
