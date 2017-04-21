@@ -252,8 +252,6 @@ void mainForm::exit() {
     QApplication::exit(EXIT_SUCCESS);
 }
 
-
-
 void mainForm::connectPort() {
 //    QSerialPort::DataBits db;
 //    QVariant v;
